@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import string
 from torchvision import transforms
 from torch import optim
+import cv2
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # create a custom dataset class to load the data from q3_train.csv and q3_test.csv
@@ -124,83 +125,163 @@ def test_model(model, test_loader, criterion):
     print('Test Loss: {:.6f} \tTest Accuracy: {:.6f}'.format(test_loss/len(test_loader), test_acc/len(test_loader)))
     return test_loss/len(test_loader), test_acc/len(test_loader)
 
+# Choose the best learning rate for Adam optimizer
+learning_rates = [1e-5, 3e-5,1e-4, 3e-4, 1e-3, 3e-3, 1e-2]
+train_losses = []
+val_losses = []
+train_accs = []
+val_accs = []
 
-# define the model
+for lr in learning_rates:
+    model = MLP(784, 256, 25).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    train_loss, val_loss, train_acc, val_acc = train_model(model, train_loader, val_loader, criterion, optimizer, epochs=2)
+    train_losses.append(train_loss[1])
+    val_losses.append(val_loss[1])
+    train_accs.append(train_acc[1])
+    val_accs.append(val_acc[1])
+
+# choose the best learning rate
+best_lr_Adam = learning_rates[np.argmax(val_accs)]
+print('Best learning rate: {}'.format(best_lr_Adam))
+
+# # choose best learning rate for SGD optimizer
+# learning_rates = [1e-5, 3e-5,1e-4, 3e-4, 1e-3, 3e-3, 1e-2]
+# train_losses = []
+# val_losses = []
+# train_accs = []
+# val_accs = []
+
+# for lr in learning_rates:
+#     model = MLP(784, 256, 25).to(device)
+#     optimizer = optim.SGD(model.parameters(), lr=lr)
+#     train_loss, val_loss, train_acc, val_acc = train_model(model, train_loader, val_loader, criterion, optimizer, epochs=2)
+#     train_losses.append(train_loss[1])
+#     val_losses.append(val_loss[1])
+#     train_accs.append(train_acc[1])
+#     val_accs.append(val_acc[1])
+# # choose the best learning rate
+# best_lr_SGD = learning_rates[np.argmax(val_accs)]
+# print('Best learning rate: {}'.format(best_lr_SGD))
+
+
+
+# define the model as model_Adam and save the best model based on the validation accuracy
 model_Adam = MLP(784, 256, 25).to(device)
-
-
-# define the optimizer
-optimizer = optim.Adam(model_Adam.parameters(), lr=0.001)
-# train the model
-train_losses_Adam, val_losses_Adam, train_accs_Adam, val_accs_Adam = train_model(model_Adam, train_loader, val_loader, criterion, optimizer, epochs=10)
-
-# define a new model with SGD optimizer and train it and test it
-model_SGD = MLP(784, 256, 25)
-model_SGD.to(device)
-optimizer_SGD = optim.SGD(model_SGD.parameters(), lr=0.001)
-train_losses_SGD, val_losses_SGD, train_accs_SGD, val_accs_SGD = train_model(model_SGD, train_loader, val_loader, criterion, optimizer_SGD, epochs=10)
-
-# plot the training and validation losses and accuracies for both optimizers
-plt.figure(figsize=(10, 5))
-plt.subplot(1, 2, 1)
-plt.plot(train_losses_Adam, label='Adam_training_loss')
-plt.plot(train_losses_SGD, label='SGD_training_loss')
-plt.plot(val_losses_Adam, label='Adam_validation_loss')
-plt.plot(val_losses_SGD, label='SGD_validation_loss')
-plt.legend()
-plt.title('Loss')
-plt.subplot(1, 2, 2)
-plt.plot(train_accs_Adam, label='Adam_training_accuracy')
-plt.plot(train_accs_SGD, label='SGD_training_accuracy')
-plt.plot(val_accs_Adam, label='Adam_validation_accuracy')
-plt.plot(val_accs_SGD, label='SGD_validation_accuracy')
-plt.legend()
-plt.title('Accuracy')
-plt.show()
-
-# compare the test losses and accuracies for both optimizers
+optimizer = optim.Adam(model_Adam.parameters(), lr=best_lr_Adam)
+train_losses_Adam, val_losses_Adam, train_accs_Adam, val_accs_Adam = train_model(model_Adam, train_loader, val_loader, criterion, optimizer, epochs=25)
 test_loss_Adam, test_acc_Adam = test_model(model_Adam, test_loader, criterion)
-test_loss_SGD, test_acc_SGD = test_model(model_SGD, test_loader, criterion)
-print('Adam Test Loss: {:.6f} \tAdam Test Accuracy: {:.6f}'.format(test_loss_Adam, test_acc_Adam))
+torch.save(model_Adam.state_dict(), './model_Adam.pt')
 
+# # define the model as model_SGD and save the best model based on the validation accuracy
+# model_SGD = MLP(784, 256, 25).to(device)
+# optimizer = optim.SGD(model_SGD.parameters(), lr=best_lr_SGD)
+# train_losses_SGD, val_losses_SGD, train_accs_SGD, val_accs_SGD = train_model(model_SGD, train_loader, val_loader, criterion, optimizer, epochs=25)
+# test_loss_SGD, test_acc_SGD = test_model(model_SGD, test_loader, criterion)
+# torch.save(model_SGD.state_dict(), './model_SGD.pt')
 
-# define a new model like the previous one but with dropout
-class MLP_dropout(nn.Module):
-    def __init__(self, in_features, hidden_size, out_features):
-        super().__init__()
-        self.fc1 = nn.Linear(in_features, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, out_features)
-        self.dropout = nn.Dropout(0.2)
+# # define a new model like MLP but with dropout
+# class MLP_dropout(nn.Module):
+#     def __init__(self, input_dim, hidden_dim, output_dim):
+#         super(MLP_dropout, self).__init__()
+#         self.fc1 = nn.Linear(input_dim, hidden_dim)
+#         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+#         self.fc3 = nn.Linear(hidden_dim, output_dim)
+#         self.dropout = nn.Dropout(p=0.5)
+#     def forward(self, x):
+#         x = x.view(-1, 784)
+#         x = F.relu(self.fc1(x))
+#         x = self.dropout(x)
+#         x = F.relu(self.fc2(x))
+#         x = self.dropout(x)
+#         x = self.fc3(x)
+#         return x
 
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = F.relu(self.fc2(x))
-        x = self.dropout(x)
-        x = self.fc3(x)
-        return x
+# # choose best learning rate for Adam optimizer for MLP_dropout
+# learning_rates = [1e-5, 3e-5,1e-4, 3e-4, 1e-3, 3e-3, 1e-2]
+# train_losses = []
+# val_losses = []
+# train_accs = []
+# val_accs = []
 
-# define the model and train it and test it with Adam optimizer and plot the training and validation losses and accuracies
-model_Adam_dropout = MLP_dropout(784, 256, 25).to(device)
-optimizer = optim.Adam(model_Adam_dropout.parameters(), lr=3e-4)
-train_losses_Adam_dropout, val_losses_Adam_dropout, train_accs_Adam_dropout, val_accs_Adam_dropout = train_model(model_Adam_dropout, train_loader, val_loader, criterion, optimizer, epochs=10)
-plt.figure(figsize=(10, 5))
-plt.subplot(1, 2, 1)
-plt.plot(train_losses_Adam_dropout, label='Adam_training_loss')
-plt.plot(val_losses_Adam_dropout, label='Adam_validation_loss')
-plt.legend()
-plt.title('Loss')
-plt.subplot(1, 2, 2)
-plt.plot(train_accs_Adam_dropout, label='Adam_training_accuracy')
-plt.plot(val_accs_Adam_dropout, label='Adam_validation_accuracy')
-plt.legend()
-plt.title('Accuracy')
-plt.show()
-print('Adam Test Loss and Accuracy with dropout') 
-test_loss_Adam_dropout, test_acc_Adam_dropout = test_model(model_Adam_dropout, test_loader, criterion)
+# for lr in learning_rates:
+#     model = MLP_dropout(784, 256, 25).to(device)
+#     optimizer = optim.Adam(model.parameters(), lr=lr)
+#     train_loss, val_loss, train_acc, val_acc = train_model(model, train_loader, val_loader, criterion, optimizer, epochs=2)
+#     train_losses.append(train_loss[1])
+#     val_losses.append(val_loss[1])
+#     train_accs.append(train_acc[1])
+#     val_accs.append(val_acc[1])
+# # choose the best learning rate
+# best_lr_Adam_dropout = learning_rates[np.argmax(val_accs)]
+# print('Best learning rate: {}'.format(best_lr_Adam_dropout))
 
+# # train the model with the best learning rate and save the best model based on the validation accuracy
+# model_Adam_dropout = MLP_dropout(784, 256, 25).to(device)
+# optimizer = optim.Adam(model_Adam_dropout.parameters(), lr=best_lr_Adam_dropout)
+# train_losses_Adam_dropout, val_losses_Adam_dropout, train_accs_Adam_dropout, val_accs_Adam_dropout = train_model(model_Adam_dropout, train_loader, val_loader, criterion, optimizer, epochs=50)
+# test_loss_Adam_dropout, test_acc_Adam_dropout = test_model(model_Adam_dropout, test_loader, criterion)
+# torch.save(model_Adam_dropout.state_dict(), './model_Adam_dropout.pt')
 
+# # plot the training and validation loss curves for MLP_SGD, MLP_Adam, MLP_Adam_dropout
+# plt.figure(figsize=(10, 5))
+# plt.plot(train_losses_SGD, label='train loss SGD')
+# plt.plot(val_losses_SGD, label='val loss SGD')
+# plt.plot(train_losses_Adam, label='train loss Adam')
+# plt.plot(val_losses_Adam, label='val loss Adam')
+# plt.plot(train_losses_Adam_dropout, label='train loss Adam dropout')
+# plt.plot(val_losses_Adam_dropout, label='val loss Adam dropout')
+# plt.legend()
+# plt.xlabel('Epochs')
 
+# # plot the training and validation accuracy curves for MLP_SGD, MLP_Adam, MLP_Adam_dropout
+# plt.figure(figsize=(10, 5))
+# plt.plot(train_accs_SGD, label='train acc SGD')
+# plt.plot(val_accs_SGD, label='val acc SGD')
+# plt.plot(train_accs_Adam, label='train acc Adam')
+# plt.plot(val_accs_Adam, label='val acc Adam')
+# plt.plot(train_accs_Adam_dropout, label='train acc Adam dropout')
+# plt.plot(val_accs_Adam_dropout, label='val acc Adam dropout')
+# plt.legend()
+# plt.xlabel('Epochs')
 
+# Choose the best model among MLP_SGD, MLP_Adam, MLP_Adam_dropout based on the validation accuracy
+best_model = model_Adam
+best_model.load_state_dict(torch.load('./model_Adam.pt'))
 
+# pass as input laptop webcam and get the output as the predicted letter
+def predict_letter(model, device, webcam):
+    model.eval()
+    with torch.no_grad():
+        for i, (data, target) in enumerate(webcam):
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            pred = output.argmax(dim=1, keepdim=True)
+            print('Predicted letter: {}'.format(chr(pred.item()+97)))
+            break
+
+# define the webcam and import preprocess function
+webcam = cv2.VideoCapture(0)
+def preprocess(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.resize(img, (28, 28))
+    img = np.array(img)
+    img = img/255
+    img = img.reshape(1, 1, 28, 28)
+    img = torch.from_numpy(img)
+    return img
+
+# predict the letter
+while True:
+    ret, frame = webcam.read()
+    if not ret:
+        print("failed to grab frame")
+        break
+    frame = preprocess(frame)
+    predict_letter(best_model, device, frame)
+    cv2.imshow("test", frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+webcam.release()
+cv2.destroyAllWindows()
