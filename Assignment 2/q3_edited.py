@@ -50,7 +50,7 @@ train_loader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True
 val_loader = torch.utils.data.DataLoader(valset, batch_size=64, shuffle=True)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=True)
 
-# define an MLP model that achieves more than 75% accuracy on the test set
+# define an MLP model with 2 hidden layers
 # there are 25 classes in the dataset
 
 class MLP(nn.Module):
@@ -249,39 +249,3 @@ torch.save(model_Adam.state_dict(), './model_Adam.pt')
 best_model = model_Adam
 best_model.load_state_dict(torch.load('./model_Adam.pt'))
 
-# pass as input laptop webcam and get the output as the predicted letter
-def predict_letter(model, device, webcam):
-    model.eval()
-    with torch.no_grad():
-        for i, (data, target) in enumerate(webcam):
-            data, target = data.to(device), target.to(device)
-            output = model(data)
-            pred = output.argmax(dim=1, keepdim=True)
-            print('Predicted letter: {}'.format(chr(pred.item()+97)))
-            break
-
-# define the webcam and import preprocess function
-webcam = cv2.VideoCapture(0)
-def preprocess(img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img = cv2.resize(img, (28, 28))
-    img = np.array(img)
-    img = img/255
-    img = img.reshape(1, 1, 28, 28)
-    img = torch.from_numpy(img)
-    return img
-
-# predict the letter
-while True:
-    ret, frame = webcam.read()
-    if not ret:
-        print("failed to grab frame")
-        break
-    frame = preprocess(frame)
-    predict_letter(best_model, device, frame)
-    cv2.imshow("test", frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-webcam.release()
-cv2.destroyAllWindows()
