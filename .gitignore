@@ -1,15 +1,32 @@
-/.idea/.gitignore
-/.idea/DeepLearning1401-01.iml
-/main.py
-/.idea/misc.xml
-/.idea/modules.xml
-/.idea/inspectionProfiles/profiles_settings.xml
-/.idea/inspectionProfiles/Project_Default.xml
-/.idea/vcs.xml
-HW1.docx
-.gitignore
-Assignment 1/desktop.ini
-Assignment 1/HW1-Saeedreza_Zouashkiani-400206262.pdf
-Assignment 1/HW1-Saeedreza_Zouashkiani-400206262.pdf
-Assignment 2/DL_HW2.zip
 Assignment 2/DL_HW2/Data/
+Assignment 2/Theoretical/
+# Add unnecessary files to the gitignore
+*.pt
+*.pdf
+*.zip
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dylib
+.idea/
+*.ipynb_checkpoints
+__pycache__/
+*.swo
+*.swp
+*.swn
+*.swm
+*.DS_Store
+*.sdf
+*.suo
+*.pdb
+*.idb
+*.tex
+*.gz
+*-ubyte
+*.ini
+*.docs
+*.docx
+*.xml
+*.iml
+
