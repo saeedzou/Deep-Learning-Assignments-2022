@@ -1,8 +1,7 @@
 Assignment 2/DL_HW2/Data/
-Assignment 2/Theoretical/
+
 # Add unnecessary files to the gitignore
 *.pt
-*.pdf
 *.zip
 *.pyc
 *.pyo
@@ -21,7 +20,6 @@ __pycache__/
 *.suo
 *.pdb
 *.idb
-*.tex
 *.gz
 *-ubyte
 *.ini
@@ -29,4 +27,11 @@ __pycache__/
 *.docx
 *.xml
 *.iml
+*.aux
+*.log
+*.jpg
+*.fls
+*.pl
+*.fdb_latexmk
+Assignment 2/Theoretical/structure.tex
 
