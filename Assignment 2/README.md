@@ -34,6 +34,7 @@ The network is trained for 100 epochs, and the accuracy of the network is printe
 ![Accuracy Plots](./Figures/q2_acc_plots.png)
 
 ## Question 3
+
 The goal of this part, is to build a simple MLP to classify hand sign alphabet. The dataset has 25 classes. Random images from all classes of this datasets are:
 
 ![Random Images](./Figures/q3_random_images.png)
