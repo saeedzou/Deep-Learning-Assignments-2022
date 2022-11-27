@@ -39,7 +39,18 @@ The goal of this part, is to build a simple MLP to classify hand sign alphabet. 
 
 ![Random Images](./Figures/q3_random_images.png)
 
-The model is trained at first using the Adam and SGD optimizers. Then dropout layers are added to the model and trained with Adam optimizer. The loss and accuracy plots for different scenarios are:
+The model is trained for 20 epochs for 3 cases.
+
+1) MLP without dropout with Adam optimizer.
+2) MLP without dropout with SGD optimizer.
+3) MLP with dropout with Adam optimizer.
+
+The loss and accuracy plots are shown below.
+Adam optimizer converges faster than SGD optimizer because of its adaptive learning rate and momentum. SGD suffers from slow convergence and high variance.
+
+Dropout is used to prevent overfitting. It is a regularization technique that randomly drops out units (along with their connections) from the neural network during training. It forces the network to learn more robust features that are useful in conjunction with many different random subsets of the other neurons. It is a very effective and simple method for regularization and preventing overfitting in neural networks. As is seen in the plots, the loss and accuracy curves are smoother than the other two cases.
+
+The model with dropout and Adam optimizer is the best model for this dataset. It has the lowest loss and highest accuracy. It is the best model because it has the best trade-off between bias and variance.
 
 ![Loss Plots](./Figures/q3_loss_plots.png)
 
