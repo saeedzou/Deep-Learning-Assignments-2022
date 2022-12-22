@@ -3,11 +3,10 @@ import os
 import seaborn as sns
 import matplotlib.pyplot as plt
 # calculate accuracy, error rate, precision, recall and confusion matrix for each class without using sklearn
-def calculate_metrics(model, test_loader, device='cpu', verbose=True):
-    classes = os.listdir("Shoe vs Sandal vs Boot Dataset")
+def calculate_metrics(model, test_loader, device='cpu', verbose=True, classes=None):
     model.eval()
     with torch.no_grad():
-        confusion_matrix = torch.zeros(3, 3)
+        confusion_matrix = torch.zeros(len(classes), len(classes))
         test_correct = 0
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
