@@ -1,9 +1,25 @@
+'''This file contains utility functions for the assignment.'''
 import torch
-import os
 import seaborn as sns
 import matplotlib.pyplot as plt
-# calculate accuracy, error rate, precision, recall and confusion matrix for each class without using sklearn
+
+
 def calculate_metrics(model, test_loader, device='cpu', verbose=True, classes=None):
+    """
+    Calculate accuracy, error rate, precision, recall and confusion matrix
+    for each class.
+
+    Args:
+        model: model to evaluate
+        test_loader: test data loader
+        device: device to use
+        verbose: print metrics or not
+        classes: list of classes
+
+    Returns:
+        accuracy, error_rate, precision, recall, confusion_matrix
+
+    """
     model.eval()
     with torch.no_grad():
         confusion_matrix = torch.zeros(len(classes), len(classes))
@@ -13,8 +29,8 @@ def calculate_metrics(model, test_loader, device='cpu', verbose=True, classes=No
             output = model(images)
             pred = output.argmax(dim=1, keepdim=True)
             test_correct += pred.eq(labels.view_as(pred)).sum().item()
-            for t, p in zip(labels.view(-1), pred.view(-1)):
-                confusion_matrix[t.long(), p.long()] += 1
+            for i, j in zip(labels.view(-1), pred.view(-1)):
+                confusion_matrix[i.long(), j.long()] += 1
         accuracy = test_correct / len(test_loader.dataset)
         error_rate = 1 - accuracy
         precision = (confusion_matrix.diag() / confusion_matrix.sum(1)).numpy()
@@ -36,15 +52,30 @@ def calculate_metrics(model, test_loader, device='cpu', verbose=True, classes=No
             print(f'Macro avg: \t {precision.mean():.3f} \t\t {recall.mean():.3f} \t\t '
             f'{2 * precision.mean() * recall.mean() / (precision.mean() + recall.mean()):.3f} '
             f'\t\t {len(test_loader.dataset)}')
-            print(f'Weighted avg: \t {precision.dot(confusion_matrix.sum(1)) / confusion_matrix.sum():.3f} \t\t '
+            f1_weighted = 2 * precision.dot(confusion_matrix.sum(1)) / confusion_matrix.sum() * \
+                recall.dot(confusion_matrix.sum(0)) / confusion_matrix.sum() / \
+                    (precision.dot(confusion_matrix.sum(1)) / confusion_matrix.sum()\
+                         + recall.dot(confusion_matrix.sum(0)) / confusion_matrix.sum())
+            print('Weighted avg: \t '
+            f'{precision.dot(confusion_matrix.sum(1)) / confusion_matrix.sum():.3f} \t\t '
             f'{recall.dot(confusion_matrix.sum(0)) / confusion_matrix.sum():.3f} \t\t '
-            f'{2 * precision.dot(confusion_matrix.sum(1)) / confusion_matrix.sum() * recall.dot(confusion_matrix.sum(0)) / confusion_matrix.sum() / (precision.dot(confusion_matrix.sum(1)) / confusion_matrix.sum() + recall.dot(confusion_matrix.sum(0)) / confusion_matrix.sum()):.3f} \t\t {len(test_loader.dataset)}')
+            f'{f1_weighted:.3f} \t\t {len(test_loader.dataset)}')
             print("--------------------------------------------------------")
             print("\n\n")
-            print(f'------------------Confusion Matrix------------------')
-            sns.heatmap(confusion_matrix.int(), annot=True, xticklabels=classes, yticklabels=classes, fmt='d', cmap='Blues')
+            print('------------------Confusion Matrix------------------')
+            sns.heatmap(confusion_matrix.int(), annot=True,
+            xticklabels=classes, yticklabels=classes, fmt='d', cmap='Blues')
         else:
             return accuracy, error_rate, precision, recall, confusion_matrix
 
 def count_parameters(model):
+    """
+    Count the number of trainable parameters in a model.
+
+    Args:
+        model: model to evaluate
+
+    Returns:
+        number of trainable parameters
+    """
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
