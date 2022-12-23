@@ -1,8 +1,6 @@
 '''This file contains utility functions for the assignment.'''
 import torch
 import seaborn as sns
-import matplotlib.pyplot as plt
-
 
 def calculate_metrics(model, test_loader, device='cpu', verbose=True, classes=None):
     """
@@ -14,7 +12,7 @@ def calculate_metrics(model, test_loader, device='cpu', verbose=True, classes=No
         test_loader: test data loader
         device: device to use
         verbose: print metrics or not
-        classes: list of classes
+        classes: list of classesss
 
     Returns:
         accuracy, error_rate, precision, recall, confusion_matrix
