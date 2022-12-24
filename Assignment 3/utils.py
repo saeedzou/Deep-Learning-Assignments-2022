@@ -4,7 +4,7 @@ import seaborn as sns
 
 
 def train_model(model, train_loader, test_loader, epochs, criterion, optimizer,
-                device, tensorboard=False, writer=None, verbose=True):
+                device, writer=None, tensorboard=False, verbose=True):
     """
     This function trains the model for the given number of epochs and returns
     loss and accuracy of train and test sets.
@@ -70,7 +70,7 @@ def train_model(model, train_loader, test_loader, epochs, criterion, optimizer,
                           train_correct / len(train_loader.dataset),
                           test_loss / len(test_loader),
                           test_correct / len(test_loader.dataset)))
-        if tensorboard:
+        if tensorboard and writer is not None:
             writer.add_scalar('Loss/train',
                               train_loss / len(train_loader), epoch)
             writer.add_scalar('Loss/test',
@@ -83,8 +83,7 @@ def train_model(model, train_loader, test_loader, epochs, criterion, optimizer,
     return train_losses, test_losses, train_acc, test_acc
 
 
-def calculate_metrics(model, test_loader, device='cpu', verbose=True,
-                      classes=None):
+def calculate_metrics(model, test_loader, classes, device='cpu', verbose=True):
     """
     Calculate accuracy, error rate, precision, recall and confusion matrix
     for each class.
