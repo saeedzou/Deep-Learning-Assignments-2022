@@ -3,16 +3,16 @@ import torch
 import seaborn as sns
 
 
-def train_model(model, train_loader, test_loader, epochs, criterion, optimizer,
+def train_model(model, train_loader, val_loader, epochs, criterion, optimizer,
                 device, writer=None, tensorboard=False, verbose=True):
     """
     This function trains the model for the given number of epochs and returns
-    loss and accuracy of train and test sets.
+    loss and accuracy of train and val sets.
 
     Args:
     model: model to train
     train_loader: train data loader
-    test_loader: test data loader
+    val_loader: validation data loader
     epochs: number of epochs to train
     criterion: loss function
     optimizer: optimizer
@@ -23,20 +23,20 @@ def train_model(model, train_loader, test_loader, epochs, criterion, optimizer,
 
     Returns:
     train_losses: list of train losses for each epoch
-    test_losses: list of test losses for each epoch
+    val_losses: list of val losses for each epoch
     train_acc: list of train accuracies for each epoch
-    test_acc: list of test accuracies for each epoch
+    val_acc: list of val accuracies for each epoch
 
     """
     train_losses = []
-    test_losses = []
+    val_losses = []
     train_acc = []
-    test_acc = []
+    val_acc = []
     for epoch in range(epochs):
         train_loss = 0
-        test_loss = 0
+        val_loss = 0
         train_correct = 0
-        test_correct = 0
+        val_correct = 0
         model.train()
         for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
@@ -52,35 +52,34 @@ def train_model(model, train_loader, test_loader, epochs, criterion, optimizer,
         train_acc.append(train_correct / len(train_loader.dataset))
         model.eval()
         with torch.no_grad():
-            for images, labels in test_loader:
+            for images, labels in val_loader:
                 images, labels = images.to(device), labels.to(device)
                 output = model(images)
                 loss = criterion(output, labels)
-                test_loss += loss.item()
+                val_loss += loss.item()
                 pred = output.argmax(dim=1, keepdim=True)
-                test_correct += pred.eq(labels.view_as(pred)).sum().item()
-        test_losses.append(test_loss / len(test_loader))
-        test_acc.append(test_correct / len(test_loader.dataset))
+                val_correct += pred.eq(labels.view_as(pred)).sum().item()
+        val_losses.append(val_loss / len(val_loader))
+        val_acc.append(val_correct / len(val_loader.dataset))
         if verbose:
-            # print with using format function
             print("Epoch: {}/{} \t Train loss: {:.3f} \t "
-                  "Train accuracy: {:.3f} \t Test loss: {:.3f} "
-                  "\t Test accuracy: {:.3f}"
+                  "Train accuracy: {:.3f} \t val loss: {:.3f} "
+                  "\t val accuracy: {:.3f}"
                   .format(epoch + 1, epochs, train_loss / len(train_loader),
                           train_correct / len(train_loader.dataset),
-                          test_loss / len(test_loader),
-                          test_correct / len(test_loader.dataset)))
+                          val_loss / len(val_loader),
+                          val_correct / len(val_loader.dataset)))
         if tensorboard and writer is not None:
             writer.add_scalar('Loss/train',
                               train_loss / len(train_loader), epoch)
-            writer.add_scalar('Loss/test',
-                              test_loss / len(test_loader), epoch)
+            writer.add_scalar('Loss/val',
+                              val_loss / len(val_loader), epoch)
             writer.add_scalar('Accuracy/train',
                               train_correct / len(train_loader.dataset), epoch)
-            writer.add_scalar('Accuracy/test',
-                              test_correct / len(test_loader.dataset), epoch)
+            writer.add_scalar('Accuracy/val',
+                              val_correct / len(val_loader.dataset), epoch)
             writer.close()
-    return train_losses, test_losses, train_acc, test_acc
+    return train_losses, val_losses, train_acc, val_acc
 
 
 def calculate_metrics(model, test_loader, classes, device='cpu', verbose=True):
