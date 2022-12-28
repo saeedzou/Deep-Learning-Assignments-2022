@@ -21,5 +21,5 @@ $ \mathcal{L}(x; W) = (1 -\alpha) * \mathcal{H}(y, \sigma(z_s, T=1)) +
 Where $ \mathcal{H} $ is the cross-entropy loss function, $ \sigma $ is the softmax function, $ \alpha $ is the weight of the knowledge distillation loss function, $ z_s $ is the output of the student model, $ z_t $ is the output of the teacher model, and $ T $ is the temperature parameter. The temperature parameter is used to control the sharpness of the probability distribution. The higher the temperature, the more the probability distribution is smoothed out. 
 Using hyperparameter search we found that the best hyperparameters are as follows:
 * $\alpha = 0.9$
-* $T = 100$
+* $T = 10$
 

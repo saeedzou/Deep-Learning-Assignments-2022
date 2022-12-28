@@ -67,7 +67,14 @@ def train_model(model, train_loader, val_loader, epochs, criterion, optimizer,
             for images, labels in val_loader:
                 images, labels = images.to(device), labels.to(device)
                 output = model(images)
-                loss = criterion(output, labels)
+                if teacher_model is not None:
+                    with torch.no_grad():
+                        teacher_output = teacher_model(images)
+                    loss = criterion(output, labels) * alpha + \
+                        criterion(F.log_softmax(output / T, dim=1),
+                        F.softmax(teacher_output / T, dim=1)) * (1 - alpha) * T ** 2
+                else:
+                    loss = criterion(output, labels)
                 val_loss += loss.item()
                 pred = output.argmax(dim=1, keepdim=True)
                 val_correct += pred.eq(labels.view_as(pred)).sum().item()
