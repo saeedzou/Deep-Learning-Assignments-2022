@@ -1,10 +1,12 @@
 '''This file contains utility functions for the assignment.'''
 import torch
 import seaborn as sns
+import torch.nn.functional as F
 
 
 def train_model(model, train_loader, val_loader, epochs, criterion, optimizer,
-                device, writer=None, tensorboard=False, verbose=True):
+                device, writer=None, verbose=True, teacher_model=None,
+                alpha=0.5, T=10):
     """
     This function trains the model for the given number of epochs and returns
     loss and accuracy of train and val sets.
@@ -20,6 +22,9 @@ def train_model(model, train_loader, val_loader, epochs, criterion, optimizer,
     tensorboard: if True, add loss and accuracy to tensorboard
     writer: tensorboard writer
     verbose: print loss and accuracy for each epoch or not
+    teacher_model: teacher model for distillation
+    alpha: weight for distillation loss
+    T: temperature for distillation loss
 
     Returns:
     train_losses: list of train losses for each epoch
@@ -42,7 +47,14 @@ def train_model(model, train_loader, val_loader, epochs, criterion, optimizer,
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             output = model(images)
-            loss = criterion(output, labels)
+            if teacher_model is not None:
+                with torch.no_grad():
+                    teacher_output = teacher_model(images)
+                loss = criterion(output, labels) * alpha + \
+                    criterion(F.log_softmax(output / T, dim=1),
+                    F.softmax(teacher_output / T, dim=1)) * (1 - alpha) * T ** 2
+            else:
+                loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
@@ -69,7 +81,7 @@ def train_model(model, train_loader, val_loader, epochs, criterion, optimizer,
                           train_correct / len(train_loader.dataset),
                           val_loss / len(val_loader),
                           val_correct / len(val_loader.dataset)))
-        if tensorboard and writer is not None:
+        if writer is not None:
             writer.add_scalar('Loss/train',
                               train_loss / len(train_loader), epoch)
             writer.add_scalar('Loss/val',
