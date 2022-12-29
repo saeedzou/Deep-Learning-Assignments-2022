@@ -2,6 +2,8 @@
 import torch
 import seaborn as sns
 import torch.nn.functional as F
+from sklearn.metrics import confusion_matrix, classification_report
+import matplotlib.pyplot as plt
 
 
 def train_model(model, train_loader, val_loader, epochs, criterion, optimizer,
@@ -100,82 +102,34 @@ def train_model(model, train_loader, val_loader, epochs, criterion, optimizer,
             writer.close()
     return train_losses, val_losses, train_acc, val_acc
 
-def print_class_metrics(metrics):
+def print_metrics(model, test_loader, device, classes):
     """
-    This function prints the metrics for each class and the average metrics.
+    This function prints the classification report and confusion matrix for
+    the test set.
 
     Args:
-    metrics: dictionary of metrics for each class
-
-    """
-    print("---------------------------Classification Report---------------------------")
-    print("\t\t precision \t recall \t f1-score \t support")
-    for i in metrics:
-        print(i, "\t", metrics[i]['precision'], "\t", metrics[i]['recall'], "\t", metrics[i]['f1-score'], "\t", int(metrics[i]['support']))
-    print("--------------------------------------------------------------------------")
-    # calculate and print the average metrics
-    avg_precision = sum([metrics[i]['precision'] for i in metrics])/len(metrics)
-    avg_recall = sum([metrics[i]['recall'] for i in metrics])/len(metrics)
-    avg_f1 = sum([metrics[i]['f1-score'] for i in metrics])/len(metrics)
-    total_support = sum([int(metrics[i]['support']) for i in metrics])
-    print(f"macro avg \t {avg_precision:8f} \t {avg_recall:8f} \t {avg_f1:8f} \t {int(total_support)}")
-    # calculate and print the weighted average metrics
-    weighted_precision = sum([metrics[i]['precision']*int(metrics[i]['support']) for i in metrics])/total_support
-    weighted_recall = sum([metrics[i]['recall']*int(metrics[i]['support']) for i in metrics])/total_support
-    weighted_f1 = sum([metrics[i]['f1-score']*int(metrics[i]['support']) for i in metrics])/total_support
-    print(f"weighted avg \t {weighted_precision:8f} \t {weighted_recall:8f} \t {weighted_f1:8f} \t {int(total_support)}")
-
-
-def calculate_metrics(model, test_loader, classes, device='cpu', verbose=True):
-    """
-    Calculate accuracy, error rate, precision, recall and confusion matrix
-    for each class.
-
-    Args:
-        model: model to evaluate
-        test_loader: test data loader
-        device: device to use
-        verbose: print metrics or not
-        classes: list of classesss
-
-    Returns:
-        accuracy, error_rate, precision, recall, confusion_matrix
-
+    model: model to evaluate
+    test_loader: test data loader
+    device: device to use for evaluation (cpu or gpu)
+    classes: list of classes
     """
     model.eval()
+    y_true = []
+    y_pred = []
     with torch.no_grad():
-        confusion_matrix = torch.zeros(len(classes), len(classes))
-        class_metrics = {i: {'precision': [], 'recall': [], 'f1-score': [], 'support': []} for i in classes}
-        test_correct = 0
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
             output = model(images)
             pred = output.argmax(dim=1, keepdim=True)
-            test_correct += pred.eq(labels.view_as(pred)).sum().item()
-            for i, j in zip(labels.view(-1), pred.view(-1)):
-                confusion_matrix[i.long(), j.long()] += 1
-        accuracy = test_correct / len(test_loader.dataset)
-        error_rate = 1 - accuracy
-        precision = (confusion_matrix.diag() / confusion_matrix.sum(1)).numpy()
-        recall = (confusion_matrix.diag() / confusion_matrix.sum(0)).numpy()
-        f1_score = 2 * precision * recall / (precision + recall)
-        support = confusion_matrix.sum(1).numpy()
-        for (i, j) in enumerate(classes):
-            class_metrics[j]['precision'] = precision[i]
-            class_metrics[j]['recall'] = recall[i]
-            class_metrics[j]['f1-score'] = f1_score[i]
-            class_metrics[j]['support'] = support[i]
-        if verbose:
-            print_class_metrics(class_metrics)
-            print('------------------Accuracy and Error Rate------------------')
-            print(f"Accuracy: {accuracy*100:.2f}%")
-            print(f"Error rate: {error_rate*100:.2f}%")
-            print('------------------Confusion Matrix------------------')
-            sns.heatmap(confusion_matrix.int(), annot=True,
-                        xticklabels=classes, yticklabels=classes, fmt='d',
-                        cmap='Blues')
-        else:
-            return accuracy, error_rate, precision, recall, confusion_matrix
+            y_true.extend(labels.cpu().numpy())
+            y_pred.extend(pred.cpu().numpy())
+    print(classification_report(y_true, y_pred, target_names=classes))
+    cm = confusion_matrix(y_true, y_pred)
+    sns.heatmap(cm, annot=True, fmt="d", xticklabels=classes,
+                yticklabels=classes)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
 
 
 def count_parameters(model):
