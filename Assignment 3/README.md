@@ -1,9 +1,3 @@
----
-title: "Using more LaTeX packages"
-output: 
-  pdf_document:
-    extra_dependencies: ["mathcal", "threeparttable"]
----
 # Assignment 3
 # Name: Saeedreza Zouashkiani
 # Student ID: 400206262
@@ -21,8 +15,7 @@ Generally speaking, factorized kernels reduce the number of parameters in the mo
 
 This question focuses on knowledge distillation on CIFAR-10 dataset. At first a pretrained ResNet50 was linear-tuned on CIFAR-10 dataset. Then, the linear-tuned model was used as a teacher model to train a student model. The student model was a pretrained ResNet18. The student model was trained using the knowledge distillation loss function from the paper "Distilling the Knowledge in a Neural Network" by Geoffrey Hinton et al. The knowledge distillation loss function is defined as follows:
 
-$ \mathcal{L}(x; W) = (1 -\alpha) * \mathcal{H}(y, \sigma(z_s, T=1)) + 
-\alpha * \tau^2 \mathcal{H}(\sigma(z_t. T=\tau), \sigma(z_s, T=\tau)) $
+![Knowledge Distillation](./Figures/KD_math_formula.png)
 
 Where $ \mathcal{H} $ is the cross-entropy loss function, $ \sigma $ is the softmax function, $ \alpha $ is the weight of the knowledge distillation loss function, $ z_s $ is the output of the student model, $ z_t $ is the output of the teacher model, and $ T $ is the temperature parameter. The temperature parameter is used to control the sharpness of the probability distribution. The higher the temperature, the more the probability distribution is smoothed out. 
 Using hyperparameter search we found that the best hyperparameters are as follows:
