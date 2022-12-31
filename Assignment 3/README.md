@@ -1,3 +1,9 @@
+---
+title: "Using more LaTeX packages"
+output: 
+  pdf_document:
+    extra_dependencies: ["mathcal", "threeparttable"]
+---
 # Assignment 3
 # Name: Saeedreza Zouashkiani
 # Student ID: 400206262
