@@ -123,7 +123,7 @@ def print_metrics(model, test_loader, device, classes):
             pred = output.argmax(dim=1, keepdim=True)
             y_true.extend(labels.cpu().numpy())
             y_pred.extend(pred.cpu().numpy())
-    print(classification_report(y_true, y_pred, target_names=classes))
+    print(classification_report(y_true, y_pred, target_names=classes, digits=4))
     cm = confusion_matrix(y_true, y_pred)
     sns.heatmap(cm, annot=True, fmt="d", xticklabels=classes,
                 yticklabels=classes)
