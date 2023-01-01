@@ -8,3 +8,5 @@ This repository contains the assignments of the Deep Learning course at Sharif U
 focuses on reviewing machine learning concepts such as SVM, KNN, Locally Weighted Regression, and Linear Regression. It also gets into Matrix Factorization method for recommendation systems.
 - [Assignment 2](./Assignment%202/README.md)
 focuses on multi-layer perceptron networks on different datasets. It also gets into the concept of regularization and dropout and how optimizers differ in their performance.
+- [Assignment 3](./Assignment%203/README.md)
+focuses on convolutional neural networks and how they differ from multi-layer perceptron networks. It also gets into the concept of knowledge distillation and how it can be used to improve the performance of a model in deployment.
