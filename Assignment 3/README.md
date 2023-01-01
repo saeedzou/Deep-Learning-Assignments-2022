@@ -15,11 +15,27 @@ Generally speaking, factorized kernels reduce the number of parameters in the mo
 
 This question focuses on knowledge distillation on CIFAR-10 dataset. At first a pretrained ResNet50 was linear-tuned on CIFAR-10 dataset. Then, the linear-tuned model was used as a teacher model to train a student model. The student model was a pretrained ResNet18. The student model was trained using the knowledge distillation loss function from the paper "Distilling the Knowledge in a Neural Network" by Geoffrey Hinton et al. The knowledge distillation loss function is defined as follows:
 
-$ \mathcal{L}(x; W) = (1 -\alpha) * \mathcal{H}(y, \sigma(z_s, T=1)) + 
-\alpha * \tau^2 \mathcal{H}(\sigma(z_t. T=\tau), \sigma(z_s, T=\tau)) $
+![Knowledge Distillation](./Figures/KD_math_formula.png)
 
-Where $ \mathcal{H} $ is the cross-entropy loss function, $ \sigma $ is the softmax function, $ \alpha $ is the weight of the knowledge distillation loss function, $ z_s $ is the output of the student model, $ z_t $ is the output of the teacher model, and $ T $ is the temperature parameter. The temperature parameter is used to control the sharpness of the probability distribution. The higher the temperature, the more the probability distribution is smoothed out. 
+The temperature parameter is used to control the sharpness of the probability distribution. The higher the temperature, the more the probability distribution is smoothed out. 
 Using hyperparameter search we found that the best hyperparameters are as follows:
-* $\alpha = 0.9$
+* $\alpha = 0.5$
 * $T = 10$
 
+The loss and accuracy curves of the student model after training are as follows:
+
+![Loss and Accuracy Curves](./Figures/Loss_and_Accuracy_curves.png)
+
+The classification report of the student model after training is as follows:
+
+![Classification Report](./Figures/Classification_report.png)
+
+The confusion matrix of the student model after training is as follows:
+
+![Confusion Matrix](./Figures/Confusion_matrix.png)
+
+Comparing the results of the knowledge distillation ResNet18 model with the fine-tuned ResNet18 model without distillation, we can see that the accuracy of the model with distillation is slightly higher than the model without distillation. This is because the knowledge distillation model is able to learn from the mistakes of the linear-tuned ResNet50 model. Also, the knowledge distillation model starts off with a much better accuracy than the model without distillation. This means that it can converge to a higher accuracy faster than the model without distillation. 
+
+Fine-tuning ResNet50 on CIFAR-10 achieves a very high accuracy because the model is complex enough to learn the features of the CIFAR-10 dataset. However, as the accuracy and loss plots show, the model is prone to overfitting.
+
+We will also learn a knowledge distillation model from the fine-tuned ResNet50 model. The knowledge distillation model will be a ResNet18 model. In this case, the model achieves a slighlty better accuracy compared to the case where the teacher model was a linear-tuned ResNet50 model.
