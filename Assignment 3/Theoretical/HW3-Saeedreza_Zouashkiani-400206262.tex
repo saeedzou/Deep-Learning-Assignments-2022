@@ -92,6 +92,35 @@ is:
 4 & 5 & 4 & 5 & 4 & 5 \\
 \end{bmatrix}
 \end{equation}
+The output using same padding is:
+\begin{equation}
+\frac{1}{9}
+\begin{bmatrix}
+2 & 3 & 3 & 3 & 3 & 3 & 2\\
+3 & 5 & 4 & 5 & 4 & 5 & 3\\
+3 & 4 & 5 & 4 & 5 & 4 & 3\\
+3 & 5 & 4 & 5 & 4 & 5 & 3\\
+3 & 4 & 5 & 4 & 5 & 4 & 3\\
+3 & 5 & 4 & 5 & 4 & 5 & 3\\
+2 & 3 & 3 & 3 & 3 & 3 & 2\\
+\end{bmatrix}
+\end{equation}
+Assuming that the edges remain the same, the output using valid padding is(Vague question!):
+\begin{equation}
+\frac{1}{9}
+\begin{bmatrix}
+9 & 0 & 9 & 0 & 9 & 0 & 9 & 0\\
+0 & 5 & 4 & 5 & 4 & 5 & 4 & 9\\
+9 & 4 & 5 & 4 & 5 & 4 & 5 & 0\\
+0 & 5 & 4 & 5 & 4 & 5 & 4 & 9\\
+9 & 4 & 5 & 4 & 5 & 4 & 5 & 0\\
+0 & 5 & 4 & 5 & 4 & 5 & 4 & 9\\
+9 & 0 & 9 & 0 & 9 & 0 & 9 & 0\\
+\end{bmatrix}
+\end{equation}
+
+
+
 \subsection{} %1.2
 This filter works as a blurring filter.
 \section{} %2
